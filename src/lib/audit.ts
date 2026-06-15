@@ -6,8 +6,8 @@ export async function logAudit(action: string, entity?: string, entityId?: strin
   await supabase.from("audit_logs").insert({
     user_id: user.id,
     action,
-    entity,
-    entity_id: entityId,
-    metadata: metadata ?? null,
+    entity: entity ?? null,
+    entity_id: entityId ?? null,
+    metadata: (metadata ?? null) as never,
   });
 }
