@@ -76,6 +76,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Enregistrez l'IMEI de vos appareils et activez le traçage en cas de perte ou de vol." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "PhoneTrack — Traçage et sécurisation par IMEI" },
+      { name: "twitter:description", content: "Enregistrez l'IMEI de vos appareils et activez le traçage en cas de perte ou de vol." },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
