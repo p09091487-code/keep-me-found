@@ -23,6 +23,10 @@ interface Device {
   model: string;
   alias: string | null;
   status: "safe" | "lost" | "stolen";
+  home_lat: number | null;
+  home_lng: number | null;
+  home_radius_m: number;
+  alert_email_enabled: boolean;
 }
 interface Position { id: string; latitude: number; longitude: number; recorded_at: string; }
 
@@ -56,12 +60,26 @@ function DeviceDetail() {
     if (!device) return;
     setSaving(true);
     const { error } = await supabase.from("devices").update({
-      alias: device.alias, status: device.status,
+      alias: device.alias,
+      status: device.status,
+      home_lat: device.home_lat,
+      home_lng: device.home_lng,
+      home_radius_m: device.home_radius_m,
+      alert_email_enabled: device.alert_email_enabled,
     }).eq("id", device.id);
     setSaving(false);
     if (error) return toast.error(error.message);
     await logAudit("device.update", "device", device.id, { status: device.status });
     toast.success("Modifications enregistrées");
+  };
+
+  const useCurrentAsHome = () => {
+    if (!device) return;
+    if (!navigator.geolocation) return toast.error("Géolocalisation non disponible");
+    navigator.geolocation.getCurrentPosition((pos) => {
+      setDevice({ ...device, home_lat: pos.coords.latitude, home_lng: pos.coords.longitude });
+      toast.success("Zone définie sur votre position actuelle");
+    }, () => toast.error("Permission refusée"));
   };
 
   const remove = async () => {
