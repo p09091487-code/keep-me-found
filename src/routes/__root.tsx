@@ -78,6 +78,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "PhoneTrack — Traçage et sécurisation par IMEI" },
       { name: "twitter:description", content: "Enregistrez l'IMEI de vos appareils et activez le traçage en cas de perte ou de vol." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/02fb1779-b530-484f-a994-080df43a6fd2/id-preview-7d6d536f--07d966f3-5640-4300-a526-678a6d13d724.lovable.app-1781615396973.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/02fb1779-b530-484f-a994-080df43a6fd2/id-preview-7d6d536f--07d966f3-5640-4300-a526-678a6d13d724.lovable.app-1781615396973.png" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
