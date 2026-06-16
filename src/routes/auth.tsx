@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { SiteNav } from "@/components/site-nav";
+import { checkAuthRate } from "@/lib/rate-limit-client";
 
 const authSearch = z.object({ tab: z.enum(["login", "register"]).optional() });
 
@@ -54,9 +55,12 @@ function AuthPage() {
     const parsed = loginSchema.safeParse({ email: loginEmail, password: loginPwd });
     if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
     setLoading(true);
+    const guard = await checkAuthRate(parsed.data.email, "signin", "attempt");
+    if (!guard.allowed) { setLoading(false); return toast.error(guard.message ?? "Trop de tentatives"); }
     const { error } = await supabase.auth.signInWithPassword(parsed.data);
     setLoading(false);
     if (error) return toast.error(error.message);
+    await checkAuthRate(parsed.data.email, "signin", "success");
     toast.success("Connecté");
     navigate({ to: "/dashboard" });
   };
@@ -96,6 +100,8 @@ function AuthPage() {
     const parsed = z.string().email().safeParse(resetEmail);
     if (!parsed.success) return toast.error("Adresse e-mail invalide");
     setLoading(true);
+    const guard = await checkAuthRate(parsed.data, "reset", "attempt");
+    if (!guard.allowed) { setLoading(false); return toast.error(guard.message ?? "Trop de tentatives"); }
     const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
       redirectTo: typeof window !== "undefined" ? `${window.location.origin}/reset-password` : undefined,
     });

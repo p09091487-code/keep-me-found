@@ -23,6 +23,10 @@ interface Device {
   model: string;
   alias: string | null;
   status: "safe" | "lost" | "stolen";
+  home_lat: number | null;
+  home_lng: number | null;
+  home_radius_m: number;
+  alert_email_enabled: boolean;
 }
 interface Position { id: string; latitude: number; longitude: number; recorded_at: string; }
 
@@ -56,12 +60,26 @@ function DeviceDetail() {
     if (!device) return;
     setSaving(true);
     const { error } = await supabase.from("devices").update({
-      alias: device.alias, status: device.status,
+      alias: device.alias,
+      status: device.status,
+      home_lat: device.home_lat,
+      home_lng: device.home_lng,
+      home_radius_m: device.home_radius_m,
+      alert_email_enabled: device.alert_email_enabled,
     }).eq("id", device.id);
     setSaving(false);
     if (error) return toast.error(error.message);
     await logAudit("device.update", "device", device.id, { status: device.status });
     toast.success("Modifications enregistrées");
+  };
+
+  const useCurrentAsHome = () => {
+    if (!device) return;
+    if (!navigator.geolocation) return toast.error("Géolocalisation non disponible");
+    navigator.geolocation.getCurrentPosition((pos) => {
+      setDevice({ ...device, home_lat: pos.coords.latitude, home_lng: pos.coords.longitude });
+      toast.success("Zone définie sur votre position actuelle");
+    }, () => toast.error("Permission refusée"));
   };
 
   const remove = async () => {
@@ -154,6 +172,44 @@ function DeviceDetail() {
             </Button>
           </div>
         </div>
+
+        <div className="rounded-lg border bg-card p-6 shadow-sm">
+          <h2 className="mb-3 flex items-center gap-2 font-semibold">
+            <MapPin className="h-4 w-4 text-primary" /> Zone de confiance & alertes
+          </h2>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Définissez le point central et le rayon de la zone de confiance de votre appareil. Si son statut est <em>Perdu</em> ou <em>Volé</em> et qu'il sort de cette zone, vous recevez une alerte par e-mail.
+          </p>
+          <div className="grid gap-3 md:grid-cols-3">
+            <div>
+              <Label htmlFor="hlat">Latitude</Label>
+              <Input id="hlat" type="number" step="any" value={device.home_lat ?? ""} onChange={(e) => setDevice({ ...device, home_lat: e.target.value === "" ? null : Number(e.target.value) })} />
+            </div>
+            <div>
+              <Label htmlFor="hlng">Longitude</Label>
+              <Input id="hlng" type="number" step="any" value={device.home_lng ?? ""} onChange={(e) => setDevice({ ...device, home_lng: e.target.value === "" ? null : Number(e.target.value) })} />
+            </div>
+            <div>
+              <Label htmlFor="hrad">Rayon (m)</Label>
+              <Input id="hrad" type="number" min={50} step={50} value={device.home_radius_m} onChange={(e) => setDevice({ ...device, home_radius_m: Number(e.target.value) || 500 })} />
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={device.alert_email_enabled} onChange={(e) => setDevice({ ...device, alert_email_enabled: e.target.checked })} />
+              Recevoir une alerte e-mail si l'appareil quitte la zone
+            </label>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={useCurrentAsHome}>
+                <MapPin className="mr-1 h-4 w-4" />Utiliser ma position
+              </Button>
+              <Button size="sm" onClick={save} disabled={saving}>
+                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}Enregistrer
+              </Button>
+            </div>
+          </div>
+        </div>
+
 
         <div className="rounded-lg border bg-card p-6 shadow-sm">
           <h2 className="mb-3 font-semibold">Historique des positions</h2>

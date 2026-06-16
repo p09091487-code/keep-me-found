@@ -18,8 +18,10 @@ import { Route as LegalConfidentialiteRouteImport } from './routes/legal.confide
 import { Route as LegalCguRouteImport } from './routes/legal.cgu'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as ApiPublicPositionsRouteImport } from './routes/api/public/positions'
 import { Route as AuthenticatedDevicesNewRouteImport } from './routes/_authenticated/devices.new'
 import { Route as AuthenticatedDevicesIdRouteImport } from './routes/_authenticated/devices.$id'
+import { Route as ApiPublicAuthRateCheckRouteImport } from './routes/api/public/auth.rate-check'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -65,6 +67,11 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicPositionsRoute = ApiPublicPositionsRouteImport.update({
+  id: '/api/public/positions',
+  path: '/api/public/positions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedDevicesNewRoute = AuthenticatedDevicesNewRouteImport.update({
   id: '/devices/new',
   path: '/devices/new',
@@ -74,6 +81,11 @@ const AuthenticatedDevicesIdRoute = AuthenticatedDevicesIdRouteImport.update({
   id: '/devices/$id',
   path: '/devices/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiPublicAuthRateCheckRoute = ApiPublicAuthRateCheckRouteImport.update({
+  id: '/api/public/auth/rate-check',
+  path: '/api/public/auth/rate-check',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -87,6 +99,8 @@ export interface FileRoutesByFullPath {
   '/legal/mentions': typeof LegalMentionsRoute
   '/devices/$id': typeof AuthenticatedDevicesIdRoute
   '/devices/new': typeof AuthenticatedDevicesNewRoute
+  '/api/public/positions': typeof ApiPublicPositionsRoute
+  '/api/public/auth/rate-check': typeof ApiPublicAuthRateCheckRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -99,6 +113,8 @@ export interface FileRoutesByTo {
   '/legal/mentions': typeof LegalMentionsRoute
   '/devices/$id': typeof AuthenticatedDevicesIdRoute
   '/devices/new': typeof AuthenticatedDevicesNewRoute
+  '/api/public/positions': typeof ApiPublicPositionsRoute
+  '/api/public/auth/rate-check': typeof ApiPublicAuthRateCheckRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -113,6 +129,8 @@ export interface FileRoutesById {
   '/legal/mentions': typeof LegalMentionsRoute
   '/_authenticated/devices/$id': typeof AuthenticatedDevicesIdRoute
   '/_authenticated/devices/new': typeof AuthenticatedDevicesNewRoute
+  '/api/public/positions': typeof ApiPublicPositionsRoute
+  '/api/public/auth/rate-check': typeof ApiPublicAuthRateCheckRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -127,6 +145,8 @@ export interface FileRouteTypes {
     | '/legal/mentions'
     | '/devices/$id'
     | '/devices/new'
+    | '/api/public/positions'
+    | '/api/public/auth/rate-check'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -139,6 +159,8 @@ export interface FileRouteTypes {
     | '/legal/mentions'
     | '/devices/$id'
     | '/devices/new'
+    | '/api/public/positions'
+    | '/api/public/auth/rate-check'
   id:
     | '__root__'
     | '/'
@@ -152,6 +174,8 @@ export interface FileRouteTypes {
     | '/legal/mentions'
     | '/_authenticated/devices/$id'
     | '/_authenticated/devices/new'
+    | '/api/public/positions'
+    | '/api/public/auth/rate-check'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -162,6 +186,8 @@ export interface RootRouteChildren {
   LegalCguRoute: typeof LegalCguRoute
   LegalConfidentialiteRoute: typeof LegalConfidentialiteRoute
   LegalMentionsRoute: typeof LegalMentionsRoute
+  ApiPublicPositionsRoute: typeof ApiPublicPositionsRoute
+  ApiPublicAuthRateCheckRoute: typeof ApiPublicAuthRateCheckRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -229,6 +255,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/positions': {
+      id: '/api/public/positions'
+      path: '/api/public/positions'
+      fullPath: '/api/public/positions'
+      preLoaderRoute: typeof ApiPublicPositionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/devices/new': {
       id: '/_authenticated/devices/new'
       path: '/devices/new'
@@ -242,6 +275,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/devices/$id'
       preLoaderRoute: typeof AuthenticatedDevicesIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/auth/rate-check': {
+      id: '/api/public/auth/rate-check'
+      path: '/api/public/auth/rate-check'
+      fullPath: '/api/public/auth/rate-check'
+      preLoaderRoute: typeof ApiPublicAuthRateCheckRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -271,17 +311,9 @@ const rootRouteChildren: RootRouteChildren = {
   LegalCguRoute: LegalCguRoute,
   LegalConfidentialiteRoute: LegalConfidentialiteRoute,
   LegalMentionsRoute: LegalMentionsRoute,
+  ApiPublicPositionsRoute: ApiPublicPositionsRoute,
+  ApiPublicAuthRateCheckRoute: ApiPublicAuthRateCheckRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

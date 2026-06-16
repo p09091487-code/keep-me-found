@@ -44,13 +44,48 @@ export type Database = {
         }
         Relationships: []
       }
+      auth_rate_limits: {
+        Row: {
+          attempts: number
+          blocked_until: string | null
+          id: string
+          identifier: string
+          kind: string
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          attempts?: number
+          blocked_until?: string | null
+          id?: string
+          identifier: string
+          kind: string
+          updated_at?: string
+          window_start?: string
+        }
+        Update: {
+          attempts?: number
+          blocked_until?: string | null
+          id?: string
+          identifier?: string
+          kind?: string
+          updated_at?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       devices: {
         Row: {
+          alert_email_enabled: boolean
           alias: string | null
           brand: string
           created_at: string
+          home_lat: number | null
+          home_lng: number | null
+          home_radius_m: number
           id: string
           imei: string
+          last_alert_at: string | null
           legal_owner_confirmed: boolean
           model: string
           status: Database["public"]["Enums"]["device_status"]
@@ -58,11 +93,16 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          alert_email_enabled?: boolean
           alias?: string | null
           brand: string
           created_at?: string
+          home_lat?: number | null
+          home_lng?: number | null
+          home_radius_m?: number
           id?: string
           imei: string
+          last_alert_at?: string | null
           legal_owner_confirmed?: boolean
           model: string
           status?: Database["public"]["Enums"]["device_status"]
@@ -70,11 +110,16 @@ export type Database = {
           user_id: string
         }
         Update: {
+          alert_email_enabled?: boolean
           alias?: string | null
           brand?: string
           created_at?: string
+          home_lat?: number | null
+          home_lng?: number | null
+          home_radius_m?: number
           id?: string
           imei?: string
+          last_alert_at?: string | null
           legal_owner_confirmed?: boolean
           model?: string
           status?: Database["public"]["Enums"]["device_status"]
@@ -82,6 +127,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      pending_alerts: {
+        Row: {
+          created_at: string
+          device_id: string
+          id: string
+          kind: string
+          payload: Json
+          sent_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          id?: string
+          kind: string
+          payload: Json
+          sent_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          id?: string
+          kind?: string
+          payload?: Json
+          sent_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_alerts_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       positions: {
         Row: {
@@ -147,7 +230,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      haversine_m: {
+        Args: { lat1: number; lat2: number; lng1: number; lng2: number }
+        Returns: number
+      }
     }
     Enums: {
       device_status: "safe" | "lost" | "stolen"
