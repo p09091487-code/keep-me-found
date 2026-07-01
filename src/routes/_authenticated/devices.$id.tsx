@@ -138,6 +138,9 @@ function DeviceDetail() {
   const markers: MapMarker[] = positions.length
     ? [{ id: positions[0].id, lat: positions[0].latitude, lng: positions[0].longitude, label: device.alias ?? `${device.brand} ${device.model}`, status: device.status }]
     : [];
+  const geofence: Geofence | null = (device.home_lat != null && device.home_lng != null)
+    ? { lat: device.home_lat, lng: device.home_lng, radius_m: device.home_radius_m }
+    : null;
 
   return (
     <div className="min-h-screen bg-muted/20">
@@ -177,18 +180,19 @@ function DeviceDetail() {
           </div>
 
           <div className="rounded-lg border bg-card p-3 shadow-sm">
-            {markers.length > 0 ? (
-              <DeviceMap markers={markers} height={300} />
+            {(markers.length > 0 || geofence) ? (
+              <DeviceMap markers={markers} geofence={geofence} height={300} />
             ) : (
               <div className="flex h-[300px] flex-col items-center justify-center text-center text-muted-foreground">
                 <MapPin className="mb-2 h-10 w-10 opacity-40" />
-                <p className="text-sm">Aucune position enregistrée.</p>
+                <p className="text-sm">Aucune position ni zone définie.</p>
               </div>
             )}
             <Button variant="outline" size="sm" onClick={addDemoPosition} className="mt-3 w-full">
               <MapPin className="mr-1 h-4 w-4" />Envoyer ma position actuelle (test)
             </Button>
           </div>
+        </div>
         </div>
 
         <div className="rounded-lg border bg-card p-6 shadow-sm">
