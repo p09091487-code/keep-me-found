@@ -193,7 +193,6 @@ function DeviceDetail() {
             </Button>
           </div>
         </div>
-        </div>
 
         <div className="rounded-lg border bg-card p-6 shadow-sm">
           <h2 className="mb-3 flex items-center gap-2 font-semibold">
