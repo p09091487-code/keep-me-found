@@ -29,14 +29,28 @@ interface Device {
   alert_email_enabled: boolean;
 }
 interface Position { id: string; latitude: number; longitude: number; recorded_at: string; }
+interface Alert {
+  id: string;
+  kind: string;
+  status: string;
+  payload: any;
+  created_at: string;
+  sent_at: string | null;
+}
 
 function DeviceDetail() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const [device, setDevice] = useState<Device | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const loadAlerts = async () => {
+    const { data } = await supabase.from("pending_alerts").select("*").eq("device_id", id).order("created_at", { ascending: false }).limit(20);
+    setAlerts((data ?? []) as Alert[]);
+  };
 
   const load = async () => {
     const { data: d, error } = await supabase.from("devices").select("*").eq("id", id).maybeSingle();
@@ -44,16 +58,21 @@ function DeviceDetail() {
     setDevice(d as Device);
     const { data: pos } = await supabase.from("positions").select("*").eq("device_id", id).order("recorded_at", { ascending: false }).limit(50);
     setPositions((pos ?? []) as Position[]);
+    await loadAlerts();
     setLoading(false);
   };
 
   useEffect(() => {
     load();
-    const channel = supabase.channel(`positions-${id}`)
+    const posChan = supabase.channel(`positions-${id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "positions", filter: `device_id=eq.${id}` }, (p) => {
         setPositions((prev) => [p.new as Position, ...prev]);
       }).subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const alertChan = supabase.channel(`alerts-${id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "pending_alerts", filter: `device_id=eq.${id}` }, () => {
+        loadAlerts();
+      }).subscribe();
+    return () => { supabase.removeChannel(posChan); supabase.removeChannel(alertChan); };
   }, [id]);
 
   const save = async () => {
