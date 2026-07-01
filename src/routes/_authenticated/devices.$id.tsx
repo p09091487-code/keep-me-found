@@ -32,7 +32,6 @@ interface Position { id: string; latitude: number; longitude: number; recorded_a
 interface Alert {
   id: string;
   kind: string;
-  status: string;
   payload: any;
   created_at: string;
   sent_at: string | null;
