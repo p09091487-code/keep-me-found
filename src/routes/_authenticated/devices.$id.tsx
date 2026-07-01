@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Loader2, Trash2, Save, MapPin } from "lucide-react";
+import { ArrowLeft, Loader2, Trash2, Save, MapPin, Bell, CheckCircle2, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/lib/audit";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SiteNav } from "@/components/site-nav";
-import { DeviceMap, type MapMarker } from "@/components/device-map";
+import { DeviceMap, type MapMarker, type Geofence } from "@/components/device-map";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/devices/$id")({
@@ -29,14 +29,27 @@ interface Device {
   alert_email_enabled: boolean;
 }
 interface Position { id: string; latitude: number; longitude: number; recorded_at: string; }
+interface Alert {
+  id: string;
+  kind: string;
+  payload: any;
+  created_at: string;
+  sent_at: string | null;
+}
 
 function DeviceDetail() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const [device, setDevice] = useState<Device | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const loadAlerts = async () => {
+    const { data } = await supabase.from("pending_alerts").select("*").eq("device_id", id).order("created_at", { ascending: false }).limit(20);
+    setAlerts((data ?? []) as Alert[]);
+  };
 
   const load = async () => {
     const { data: d, error } = await supabase.from("devices").select("*").eq("id", id).maybeSingle();
@@ -44,16 +57,21 @@ function DeviceDetail() {
     setDevice(d as Device);
     const { data: pos } = await supabase.from("positions").select("*").eq("device_id", id).order("recorded_at", { ascending: false }).limit(50);
     setPositions((pos ?? []) as Position[]);
+    await loadAlerts();
     setLoading(false);
   };
 
   useEffect(() => {
     load();
-    const channel = supabase.channel(`positions-${id}`)
+    const posChan = supabase.channel(`positions-${id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "positions", filter: `device_id=eq.${id}` }, (p) => {
         setPositions((prev) => [p.new as Position, ...prev]);
       }).subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const alertChan = supabase.channel(`alerts-${id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "pending_alerts", filter: `device_id=eq.${id}` }, () => {
+        loadAlerts();
+      }).subscribe();
+    return () => { supabase.removeChannel(posChan); supabase.removeChannel(alertChan); };
   }, [id]);
 
   const save = async () => {
@@ -120,6 +138,9 @@ function DeviceDetail() {
   const markers: MapMarker[] = positions.length
     ? [{ id: positions[0].id, lat: positions[0].latitude, lng: positions[0].longitude, label: device.alias ?? `${device.brand} ${device.model}`, status: device.status }]
     : [];
+  const geofence: Geofence | null = (device.home_lat != null && device.home_lng != null)
+    ? { lat: device.home_lat, lng: device.home_lng, radius_m: device.home_radius_m }
+    : null;
 
   return (
     <div className="min-h-screen bg-muted/20">
@@ -159,12 +180,12 @@ function DeviceDetail() {
           </div>
 
           <div className="rounded-lg border bg-card p-3 shadow-sm">
-            {markers.length > 0 ? (
-              <DeviceMap markers={markers} height={300} />
+            {(markers.length > 0 || geofence) ? (
+              <DeviceMap markers={markers} geofence={geofence} height={300} />
             ) : (
               <div className="flex h-[300px] flex-col items-center justify-center text-center text-muted-foreground">
                 <MapPin className="mb-2 h-10 w-10 opacity-40" />
-                <p className="text-sm">Aucune position enregistrée.</p>
+                <p className="text-sm">Aucune position ni zone définie.</p>
               </div>
             )}
             <Button variant="outline" size="sm" onClick={addDemoPosition} className="mt-3 w-full">
@@ -210,6 +231,41 @@ function DeviceDetail() {
           </div>
         </div>
 
+
+        <div className="rounded-lg border bg-card p-6 shadow-sm">
+          <h2 className="mb-3 flex items-center gap-2 font-semibold">
+            <Bell className="h-4 w-4 text-primary" /> Historique des alertes de zone
+          </h2>
+          {alerts.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Aucune alerte pour l'instant. Vous serez notifié ici (et par e-mail) si l'appareil sort de sa zone de confiance alors qu'il est marqué perdu ou volé.
+            </p>
+          ) : (
+            <ul className="divide-y text-sm">
+              {alerts.map((a) => {
+                const p = a.payload ?? {};
+                const dist = p.distance_m ? `${p.distance_m} m` : "—";
+                return (
+                  <li key={a.id} className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-2">
+                      {a.sent_at ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                          <CheckCircle2 className="h-3 w-3" /> Envoyée
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                          <Clock className="h-3 w-3" /> En attente
+                        </span>
+                      )}
+                      <span className="text-foreground">Sortie de zone · {dist}</span>
+                    </div>
+                    <span className="text-muted-foreground">{new Date(a.created_at).toLocaleString("fr-FR")}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
 
         <div className="rounded-lg border bg-card p-6 shadow-sm">
           <h2 className="mb-3 font-semibold">Historique des positions</h2>
