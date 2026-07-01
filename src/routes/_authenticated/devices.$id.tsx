@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Loader2, Trash2, Save, MapPin } from "lucide-react";
+import { ArrowLeft, Loader2, Trash2, Save, MapPin, Bell, CheckCircle2, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/lib/audit";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SiteNav } from "@/components/site-nav";
-import { DeviceMap, type MapMarker } from "@/components/device-map";
+import { DeviceMap, type MapMarker, type Geofence } from "@/components/device-map";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/devices/$id")({
