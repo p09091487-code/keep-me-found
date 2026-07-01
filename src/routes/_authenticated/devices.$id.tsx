@@ -233,6 +233,41 @@ function DeviceDetail() {
 
 
         <div className="rounded-lg border bg-card p-6 shadow-sm">
+          <h2 className="mb-3 flex items-center gap-2 font-semibold">
+            <Bell className="h-4 w-4 text-primary" /> Historique des alertes de zone
+          </h2>
+          {alerts.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Aucune alerte pour l'instant. Vous serez notifié ici (et par e-mail) si l'appareil sort de sa zone de confiance alors qu'il est marqué perdu ou volé.
+            </p>
+          ) : (
+            <ul className="divide-y text-sm">
+              {alerts.map((a) => {
+                const p = a.payload ?? {};
+                const dist = p.distance_m ? `${p.distance_m} m` : "—";
+                return (
+                  <li key={a.id} className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-2">
+                      {a.sent_at ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                          <CheckCircle2 className="h-3 w-3" /> Envoyée
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                          <Clock className="h-3 w-3" /> En attente
+                        </span>
+                      )}
+                      <span className="text-foreground">Sortie de zone · {dist}</span>
+                    </div>
+                    <span className="text-muted-foreground">{new Date(a.created_at).toLocaleString("fr-FR")}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        <div className="rounded-lg border bg-card p-6 shadow-sm">
           <h2 className="mb-3 font-semibold">Historique des positions</h2>
           {positions.length === 0 ? (
             <p className="text-sm text-muted-foreground">Aucune position enregistrée.</p>
