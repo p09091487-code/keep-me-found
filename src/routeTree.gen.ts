@@ -18,6 +18,7 @@ import { Route as LegalConfidentialiteRouteImport } from './routes/legal.confide
 import { Route as LegalCguRouteImport } from './routes/legal.cgu'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as ApiPublicProcessAlertsRouteImport } from './routes/api/public/process-alerts'
 import { Route as ApiPublicPositionsRouteImport } from './routes/api/public/positions'
 import { Route as AuthenticatedDevicesNewRouteImport } from './routes/_authenticated/devices.new'
 import { Route as AuthenticatedDevicesIdRouteImport } from './routes/_authenticated/devices.$id'
@@ -67,6 +68,11 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicProcessAlertsRoute = ApiPublicProcessAlertsRouteImport.update({
+  id: '/api/public/process-alerts',
+  path: '/api/public/process-alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPositionsRoute = ApiPublicPositionsRouteImport.update({
   id: '/api/public/positions',
   path: '/api/public/positions',
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/devices/$id': typeof AuthenticatedDevicesIdRoute
   '/devices/new': typeof AuthenticatedDevicesNewRoute
   '/api/public/positions': typeof ApiPublicPositionsRoute
+  '/api/public/process-alerts': typeof ApiPublicProcessAlertsRoute
   '/api/public/auth/rate-check': typeof ApiPublicAuthRateCheckRoute
 }
 export interface FileRoutesByTo {
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/devices/$id': typeof AuthenticatedDevicesIdRoute
   '/devices/new': typeof AuthenticatedDevicesNewRoute
   '/api/public/positions': typeof ApiPublicPositionsRoute
+  '/api/public/process-alerts': typeof ApiPublicProcessAlertsRoute
   '/api/public/auth/rate-check': typeof ApiPublicAuthRateCheckRoute
 }
 export interface FileRoutesById {
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/_authenticated/devices/$id': typeof AuthenticatedDevicesIdRoute
   '/_authenticated/devices/new': typeof AuthenticatedDevicesNewRoute
   '/api/public/positions': typeof ApiPublicPositionsRoute
+  '/api/public/process-alerts': typeof ApiPublicProcessAlertsRoute
   '/api/public/auth/rate-check': typeof ApiPublicAuthRateCheckRoute
 }
 export interface FileRouteTypes {
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/devices/$id'
     | '/devices/new'
     | '/api/public/positions'
+    | '/api/public/process-alerts'
     | '/api/public/auth/rate-check'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/devices/$id'
     | '/devices/new'
     | '/api/public/positions'
+    | '/api/public/process-alerts'
     | '/api/public/auth/rate-check'
   id:
     | '__root__'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/_authenticated/devices/$id'
     | '/_authenticated/devices/new'
     | '/api/public/positions'
+    | '/api/public/process-alerts'
     | '/api/public/auth/rate-check'
   fileRoutesById: FileRoutesById
 }
@@ -187,6 +199,7 @@ export interface RootRouteChildren {
   LegalConfidentialiteRoute: typeof LegalConfidentialiteRoute
   LegalMentionsRoute: typeof LegalMentionsRoute
   ApiPublicPositionsRoute: typeof ApiPublicPositionsRoute
+  ApiPublicProcessAlertsRoute: typeof ApiPublicProcessAlertsRoute
   ApiPublicAuthRateCheckRoute: typeof ApiPublicAuthRateCheckRoute
 }
 
@@ -255,6 +268,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/process-alerts': {
+      id: '/api/public/process-alerts'
+      path: '/api/public/process-alerts'
+      fullPath: '/api/public/process-alerts'
+      preLoaderRoute: typeof ApiPublicProcessAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/positions': {
       id: '/api/public/positions'
       path: '/api/public/positions'
@@ -312,18 +332,9 @@ const rootRouteChildren: RootRouteChildren = {
   LegalConfidentialiteRoute: LegalConfidentialiteRoute,
   LegalMentionsRoute: LegalMentionsRoute,
   ApiPublicPositionsRoute: ApiPublicPositionsRoute,
+  ApiPublicProcessAlertsRoute: ApiPublicProcessAlertsRoute,
   ApiPublicAuthRateCheckRoute: ApiPublicAuthRateCheckRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
