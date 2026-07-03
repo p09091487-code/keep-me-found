@@ -1,8 +1,19 @@
 User-agent: *
 Allow: /
 
+# Zones privées & flux non indexables
 Disallow: /_authenticated/
+Disallow: /dashboard
+Disallow: /account
+Disallow: /devices
+Disallow: /auth
 Disallow: /reset-password
 Disallow: /api/
+
+# Autorisations explicites des pages publiques importantes
+Allow: /$
+Allow: /legal/cgu
+Allow: /legal/mentions
+Allow: /legal/confidentialite
 
 Sitemap: https://phonetracked.lovable.app/sitemap.xml
