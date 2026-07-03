@@ -9,7 +9,12 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "PhoneTrack — Traçage IMEI et sécurité mobile" },
       { name: "description", content: "Enregistrez l'IMEI de vos appareils, activez le traçage en cas de perte ou de vol et recevez des alertes en temps réel sur une carte interactive." },
+      { property: "og:title", content: "PhoneTrack — Traçage IMEI et sécurité mobile" },
+      { property: "og:description", content: "Enregistrez l'IMEI, activez le traçage en cas de perte ou de vol et recevez des alertes temps réel." },
+      { property: "og:url", content: "https://phonetracked.lovable.app/" },
+      { property: "og:type", content: "website" },
     ],
+    links: [{ rel: "canonical", href: "https://phonetracked.lovable.app/" }],
   }),
   component: Landing,
 });

@@ -17,7 +17,16 @@ const authSearch = z.object({ tab: z.enum(["login", "register"]).optional() });
 
 export const Route = createFileRoute("/auth")({
   validateSearch: authSearch,
-  head: () => ({ meta: [{ title: "Connexion — PhoneTrack" }] }),
+  head: () => ({
+    meta: [
+      { title: "Connexion — PhoneTrack" },
+      { name: "description", content: "Connectez-vous à PhoneTrack pour gérer vos appareils, activer le traçage et consulter vos alertes en temps réel." },
+      { property: "og:title", content: "Connexion — PhoneTrack" },
+      { property: "og:description", content: "Accédez à votre espace PhoneTrack pour tracer et sécuriser vos appareils." },
+      { property: "og:url", content: "https://phonetracked.lovable.app/auth" },
+    ],
+    links: [{ rel: "canonical", href: "https://phonetracked.lovable.app/auth" }],
+  }),
   component: AuthPage,
 });
 

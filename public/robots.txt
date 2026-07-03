@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Disallow: /_authenticated/
+Disallow: /reset-password
+Disallow: /api/
+
+Sitemap: https://phonetracked.lovable.app/sitemap.xml

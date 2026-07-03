@@ -3,7 +3,15 @@ import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 
 export const Route = createFileRoute("/legal/cgu")({
-  head: () => ({ meta: [{ title: "Conditions générales d'utilisation — PhoneTrack" }] }),
+  head: () => ({
+    meta: [
+      { title: "Conditions générales d'utilisation — PhoneTrack" },
+      { name: "description", content: "Lisez les conditions générales d'utilisation du service PhoneTrack : engagements de l'utilisateur, service, résiliation et droit applicable." },
+      { property: "og:title", content: "CGU — PhoneTrack" },
+      { property: "og:url", content: "https://phonetracked.lovable.app/legal/cgu" },
+    ],
+    links: [{ rel: "canonical", href: "https://phonetracked.lovable.app/legal/cgu" }],
+  }),
   component: Page,
 });
 

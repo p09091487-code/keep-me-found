@@ -3,7 +3,15 @@ import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 
 export const Route = createFileRoute("/legal/confidentialite")({
-  head: () => ({ meta: [{ title: "Politique de confidentialité — PhoneTrack" }] }),
+  head: () => ({
+    meta: [
+      { title: "Politique de confidentialité — PhoneTrack" },
+      { name: "description", content: "Politique de confidentialité PhoneTrack : données collectées, finalités, hébergement en UE, droits RGPD et suppression du compte." },
+      { property: "og:title", content: "Confidentialité — PhoneTrack" },
+      { property: "og:url", content: "https://phonetracked.lovable.app/legal/confidentialite" },
+    ],
+    links: [{ rel: "canonical", href: "https://phonetracked.lovable.app/legal/confidentialite" }],
+  }),
   component: Page,
 });
 
