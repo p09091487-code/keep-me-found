@@ -3,7 +3,15 @@ import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 
 export const Route = createFileRoute("/legal/mentions")({
-  head: () => ({ meta: [{ title: "Mentions légales — PhoneTrack" }] }),
+  head: () => ({
+    meta: [
+      { title: "Mentions légales — PhoneTrack" },
+      { name: "description", content: "Mentions légales de PhoneTrack : éditeur, hébergement, propriété intellectuelle et responsabilité." },
+      { property: "og:title", content: "Mentions légales — PhoneTrack" },
+      { property: "og:url", content: "https://phonetracked.lovable.app/legal/mentions" },
+    ],
+    links: [{ rel: "canonical", href: "https://phonetracked.lovable.app/legal/mentions" }],
+  }),
   component: Page,
 });
 
