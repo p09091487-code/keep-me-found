@@ -82,6 +82,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/4e6b4547-7721-4272-a38b-96c16b17ba48" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "PhoneTrack",
+          url: "https://phonetracked.lovable.app",
+          logo: "https://phonetracked.lovable.app/favicon.ico",
+          description: "Service de traçage et sécurisation d'appareils mobiles par IMEI.",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "PhoneTrack",
+          url: "https://phonetracked.lovable.app",
+        }),
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
