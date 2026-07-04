@@ -96,28 +96,30 @@ function AuthPage() {
     const parsed = registerSchema.safeParse({ full_name: name, email, password: pwd });
     if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
     setLoading(true);
+    const returnOrigin = typeof window !== "undefined" ? window.location.origin : "";
     const { error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
-        emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+        emailRedirectTo: returnOrigin + (nextPath ?? ""),
         data: { full_name: parsed.data.full_name },
       },
     });
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success("Compte créé !");
-    navigate({ to: "/dashboard" });
+    goPostAuth();
   };
 
   const handleGoogle = async () => {
     setLoading(true);
+    const returnOrigin = typeof window !== "undefined" ? window.location.origin : "";
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: typeof window !== "undefined" ? window.location.origin + "/dashboard" : undefined,
+      redirect_uri: returnOrigin + (nextPath ?? "/dashboard"),
     });
     if (result.error) { setLoading(false); toast.error("Échec de la connexion Google"); return; }
     if (result.redirected) return;
-    navigate({ to: "/dashboard" });
+    goPostAuth();
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
