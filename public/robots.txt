@@ -2,7 +2,6 @@ User-agent: *
 Allow: /
 
 # Zones privées & flux non indexables
-Disallow: /_authenticated/
 Disallow: /dashboard
 Disallow: /account
 Disallow: /devices
