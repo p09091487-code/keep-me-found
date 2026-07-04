@@ -13,7 +13,18 @@ import { toast } from "sonner";
 import { SiteNav } from "@/components/site-nav";
 import { checkAuthRate } from "@/lib/rate-limit-client";
 
-const authSearch = z.object({ tab: z.enum(["login", "register"]).optional() });
+const authSearch = z.object({
+  tab: z.enum(["login", "register"]).optional(),
+  // Same-origin relative path to return to after successful sign-in (used by the MCP OAuth consent flow).
+  next: z.string().startsWith("/").optional(),
+});
+
+function safeNext(next: string | undefined): string | null {
+  if (!next) return null;
+  // Only allow same-origin relative paths (no protocol, no //, no backslash).
+  if (!next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return null;
+  return next;
+}
 
 export const Route = createFileRoute("/auth")({
   validateSearch: authSearch,
@@ -31,9 +42,14 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { tab } = Route.useSearch();
+  const { tab, next } = Route.useSearch();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const nextPath = safeNext(next);
+  const goPostAuth = () => {
+    if (nextPath) { window.location.href = nextPath; return; }
+    navigate({ to: "/dashboard" });
+  };
 
   // Login state
   const [loginEmail, setLoginEmail] = useState("");
@@ -71,7 +87,7 @@ function AuthPage() {
     if (error) return toast.error(error.message);
     await checkAuthRate(parsed.data.email, "signin", "success");
     toast.success("Connecté");
-    navigate({ to: "/dashboard" });
+    goPostAuth();
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -80,28 +96,30 @@ function AuthPage() {
     const parsed = registerSchema.safeParse({ full_name: name, email, password: pwd });
     if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
     setLoading(true);
+    const returnOrigin = typeof window !== "undefined" ? window.location.origin : "";
     const { error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
-        emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+        emailRedirectTo: returnOrigin + (nextPath ?? ""),
         data: { full_name: parsed.data.full_name },
       },
     });
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success("Compte créé !");
-    navigate({ to: "/dashboard" });
+    goPostAuth();
   };
 
   const handleGoogle = async () => {
     setLoading(true);
+    const returnOrigin = typeof window !== "undefined" ? window.location.origin : "";
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: typeof window !== "undefined" ? window.location.origin + "/dashboard" : undefined,
+      redirect_uri: returnOrigin + (nextPath ?? "/dashboard"),
     });
     if (result.error) { setLoading(false); toast.error("Échec de la connexion Google"); return; }
     if (result.redirected) return;
-    navigate({ to: "/dashboard" });
+    goPostAuth();
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
