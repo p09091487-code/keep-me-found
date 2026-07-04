@@ -1,16 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { timingSafeEqual } from "crypto";
 
 /**
  * Worker : dépile pending_alerts (sent_at IS NULL) et envoie un e-mail via Resend.
- * Appelé par pg_cron toutes les minutes avec le header `apikey`.
+ * Appelé par pg_cron toutes les minutes avec le header `x-cron-secret`.
  */
 export const Route = createFileRoute("/api/public/process-alerts")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const anonKey = process.env.SUPABASE_PUBLISHABLE_KEY!;
-        const apiKey = request.headers.get("apikey");
-        if (!apiKey || apiKey !== anonKey) {
+        const expected = process.env.CRON_SECRET;
+        if (!expected) {
+          return new Response("Server misconfigured", { status: 500 });
+        }
+        const provided = request.headers.get("x-cron-secret") ?? "";
+        const a = Buffer.from(provided);
+        const b = Buffer.from(expected);
+        if (a.length !== b.length || !timingSafeEqual(a, b)) {
           return new Response("Unauthorized", { status: 401 });
         }
 
