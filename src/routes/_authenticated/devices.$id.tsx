@@ -138,9 +138,13 @@ function DeviceDetail() {
   const markers: MapMarker[] = positions.length
     ? [{ id: positions[0].id, lat: positions[0].latitude, lng: positions[0].longitude, label: device.alias ?? `${device.brand} ${device.model}`, status: device.status }]
     : [];
+  const trail = positions.length >= 2
+    ? [...positions].reverse().map((p) => ({ lat: p.latitude, lng: p.longitude }))
+    : undefined;
   const geofence: Geofence | null = (device.home_lat != null && device.home_lng != null)
     ? { lat: device.home_lat, lng: device.home_lng, radius_m: device.home_radius_m }
     : null;
+
 
   return (
     <div className="min-h-screen bg-muted/20">
@@ -181,7 +185,7 @@ function DeviceDetail() {
 
           <div className="rounded-lg border bg-card p-3 shadow-sm">
             {(markers.length > 0 || geofence) ? (
-              <DeviceMap markers={markers} geofence={geofence} height={300} />
+              <DeviceMap markers={markers} geofence={geofence} trail={trail} height={300} />
             ) : (
               <div className="flex h-[300px] flex-col items-center justify-center text-center text-muted-foreground">
                 <MapPin className="mb-2 h-10 w-10 opacity-40" />
