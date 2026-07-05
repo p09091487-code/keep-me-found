@@ -185,7 +185,7 @@ function DeviceDetail() {
 
           <div className="rounded-lg border bg-card p-3 shadow-sm">
             {(markers.length > 0 || geofence) ? (
-              <DeviceMap markers={markers} geofence={geofence} height={300} />
+              <DeviceMap markers={markers} geofence={geofence} trail={trail} height={300} />
             ) : (
               <div className="flex h-[300px] flex-col items-center justify-center text-center text-muted-foreground">
                 <MapPin className="mb-2 h-10 w-10 opacity-40" />
