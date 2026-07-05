@@ -1,13 +1,21 @@
 // Petit client navigateur pour /api/public/auth/rate-check
+import { supabase } from "@/integrations/supabase/client";
+
 export async function checkAuthRate(
   identifier: string,
   kind: "signin" | "reset",
   outcome: "attempt" | "success" = "attempt",
 ): Promise<{ allowed: boolean; message?: string }> {
   try {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (outcome === "success") {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+    }
     const res = await fetch("/api/public/auth/rate-check", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ identifier, kind, outcome }),
     });
     if (res.status === 429) {
