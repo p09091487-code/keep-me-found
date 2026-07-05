@@ -28,11 +28,12 @@ interface Props {
  * Carte Leaflet (chargée dynamiquement, side client uniquement).
  * Affiche les positions + éventuellement une zone de confiance (cercle).
  */
-export function DeviceMap({ markers, center = [46.5, 2.5], zoom = 5, height = 400, geofence = null }: Props) {
+export function DeviceMap({ markers, center = [46.5, 2.5], zoom = 5, height = 400, geofence = null, trail }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markerLayerRef = useRef<any>(null);
   const geofenceLayerRef = useRef<any>(null);
+  const trailLayerRef = useRef<any>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,22 +48,40 @@ export function DeviceMap({ markers, center = [46.5, 2.5], zoom = 5, height = 40
           attribution: "© OpenStreetMap",
           maxZoom: 19,
         }).addTo(mapRef.current);
+        trailLayerRef.current = L.layerGroup().addTo(mapRef.current);
         markerLayerRef.current = L.layerGroup().addTo(mapRef.current);
         geofenceLayerRef.current = L.layerGroup().addTo(mapRef.current);
       }
 
+      const bounds: [number, number][] = [];
+
+      // Trail (parcours) — dessiné sous les markers
+      trailLayerRef.current.clearLayers();
+      if (trail && trail.length >= 2) {
+        const pts: [number, number][] = trail
+          .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng))
+          .map((p) => [p.lat, p.lng]);
+        if (pts.length >= 2) {
+          L.polyline(pts, { color: "#dc2626", weight: 3, opacity: 0.8 }).addTo(trailLayerRef.current);
+          pts.forEach((p) => bounds.push(p));
+        }
+      }
+
       // Positions
       markerLayerRef.current.clearLayers();
-      const bounds: [number, number][] = [];
-      markers.forEach((m) => {
+      markers.forEach((m, idx) => {
+        const isCurrent = idx === 0;
         const color = m.status === "stolen" ? "#dc2626" : m.status === "lost" ? "#f59e0b" : "#2563eb";
+        const size = isCurrent ? 24 : 18;
+        const border = isCurrent ? 4 : 3;
+        const ring = isCurrent ? 4 : 2;
         const icon = L.divIcon({
           className: "",
-          html: `<div style="width:18px;height:18px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 0 0 2px ${color}55;"></div>`,
-          iconSize: [18, 18],
-          iconAnchor: [9, 9],
+          html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:${border}px solid white;box-shadow:0 0 0 ${ring}px ${color}66;"></div>`,
+          iconSize: [size, size],
+          iconAnchor: [size / 2, size / 2],
         });
-        const marker = L.marker([m.lat, m.lng], { icon }).addTo(markerLayerRef.current);
+        const marker = L.marker([m.lat, m.lng], { icon, zIndexOffset: isCurrent ? 1000 : 0 }).addTo(markerLayerRef.current);
         if (m.label) marker.bindPopup(m.label);
         bounds.push([m.lat, m.lng]);
       });
@@ -87,7 +106,8 @@ export function DeviceMap({ markers, center = [46.5, 2.5], zoom = 5, height = 40
       else if (bounds.length > 1) mapRef.current.fitBounds(bounds, { padding: [40, 40] });
     })();
     return () => { cancelled = true; };
-  }, [markers, center, zoom, geofence?.lat, geofence?.lng, geofence?.radius_m]);
+  }, [markers, center, zoom, geofence?.lat, geofence?.lng, geofence?.radius_m, trail]);
+
 
   useEffect(() => {
     return () => {
