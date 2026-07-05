@@ -20,7 +20,9 @@ interface Props {
   zoom?: number;
   height?: number;
   geofence?: Geofence | null;
+  trail?: { lat: number; lng: number }[];
 }
+
 
 /**
  * Carte Leaflet (chargée dynamiquement, side client uniquement).
