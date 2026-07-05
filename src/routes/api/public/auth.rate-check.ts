@@ -25,7 +25,7 @@ const corsHeaders = {
 export const Route = createFileRoute("/api/public/auth/rate-check")({
   server: {
     handlers: {
-      OPTIONS: () => new Response(null, { status: 204, headers: corsHeaders }),
+      OPTIONS: () => new Response(null, { status: 204, headers: { ...corsHeaders, "Access-Control-Allow-Headers": "content-type, authorization" } }),
       POST: async ({ request }) => {
         let body: unknown;
         try { body = await request.json(); }
@@ -46,6 +46,18 @@ export const Route = createFileRoute("/api/public/auth/rate-check")({
         const now = new Date();
 
         if (outcome === "success") {
+          // Require a valid Supabase Bearer token whose email matches `identifier`
+          // to prevent anyone from clearing rate-limit counters for arbitrary accounts.
+          const authHeader = request.headers.get("authorization") ?? "";
+          if (!authHeader.startsWith("Bearer ")) {
+            return Response.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders });
+          }
+          const token = authHeader.slice("Bearer ".length);
+          const { data: claimsRes, error: claimsErr } = await admin.auth.getClaims(token);
+          const tokenEmail = (claimsRes?.claims as { email?: string } | undefined)?.email?.toLowerCase();
+          if (claimsErr || !tokenEmail || tokenEmail !== identifier) {
+            return Response.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders });
+          }
           await admin.from("auth_rate_limits").delete().eq("identifier", identifier).eq("kind", kind);
           return Response.json({ allowed: true }, { headers: corsHeaders });
         }
