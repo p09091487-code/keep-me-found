@@ -97,7 +97,7 @@ function AuthPage() {
     if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
     setLoading(true);
     const returnOrigin = typeof window !== "undefined" ? window.location.origin : "";
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
@@ -107,6 +107,11 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) return toast.error(error.message);
+    if (!data.session) {
+      toast.success("Compte créé ! Vérifiez votre boîte mail pour confirmer votre adresse avant de vous connecter.");
+      navigate({ to: "/auth", search: { tab: "login" } });
+      return;
+    }
     toast.success("Compte créé !");
     goPostAuth();
   };
