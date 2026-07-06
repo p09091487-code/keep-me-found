@@ -14,6 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_admins: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -128,6 +143,27 @@ export type Database = {
         }
         Relationships: []
       }
+      page_views: {
+        Row: {
+          created_at: string
+          id: string
+          path: string
+          referrer: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          path: string
+          referrer?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          path?: string
+          referrer?: string | null
+        }
+        Relationships: []
+      }
       pending_alerts: {
         Row: {
           created_at: string
@@ -225,6 +261,45 @@ export type Database = {
         }
         Relationships: []
       }
+      support_messages: {
+        Row: {
+          admin_reply: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string | null
+          replied_at: string | null
+          status: string
+          subject: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_reply?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name?: string | null
+          replied_at?: string | null
+          status?: string
+          subject: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_reply?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string | null
+          replied_at?: string | null
+          status?: string
+          subject?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -234,6 +309,7 @@ export type Database = {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
       }
+      is_app_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       device_status: "safe" | "lost" | "stolen"
