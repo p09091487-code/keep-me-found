@@ -133,6 +133,19 @@ function RootComponent() {
     return () => sub.subscription.unsubscribe();
   }, [router, queryClient]);
 
+  useEffect(() => {
+    // Track initial page + subsequent client-side navigations. Fire-and-forget.
+    import("@/lib/page-view-tracker").then(({ trackPageView }) => {
+      trackPageView(window.location.pathname);
+      const unsub = router.subscribe("onResolved", () => {
+        trackPageView(window.location.pathname);
+      });
+      // Store unsub on window to allow cleanup in dev HMR
+      (window as unknown as { __pvUnsub?: () => void }).__pvUnsub?.();
+      (window as unknown as { __pvUnsub?: () => void }).__pvUnsub = unsub;
+    }).catch(() => undefined);
+  }, [router]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
